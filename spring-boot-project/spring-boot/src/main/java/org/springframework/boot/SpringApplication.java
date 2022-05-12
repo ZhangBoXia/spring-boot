@@ -267,9 +267,13 @@ public class SpringApplication {
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		// 把SpringBootZbxApplication.class设置为属性存储起来
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		// 设置应用类型是Standard还是Web
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
+		// 设置初始化器(Initializer),最后会调用这些初始化器
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+		// 设置监听器(Listener)
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
@@ -307,17 +311,22 @@ public class SpringApplication {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
 			configureIgnoreBeanInfo(environment);
+			// 准备Banner打印器 - 就是启动Spring Boot的时候打印在console上的ASCII艺术字体
 			Banner printedBanner = printBanner(environment);
+			// 实例化Spring容器（未初始化）
 			context = createApplicationContext();
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
+			// Spring容器前置处理
 			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+			// 刷新容器
 			refreshContext(context);
 			afterRefresh(context, applicationArguments);
 			stopWatch.stop();
 			if (this.logStartupInfo) {
 				new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);
 			}
+			// 发出结束执行的事件
 			listeners.started(context);
 			callRunners(context, applicationArguments);
 		}
@@ -367,7 +376,9 @@ public class SpringApplication {
 			SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments, Banner printedBanner) {
 		context.setEnvironment(environment);
 		postProcessApplicationContext(context);
+		// 执行容器中的ApplicationContextInitializer（包括 spring.factories和自定义的实例）
 		applyInitializers(context);
+		// 发送容器已经准备好的事件，通知各监听器
 		listeners.contextPrepared(context);
 		if (this.logStartupInfo) {
 			logStartupInfo(context.getParent() == null);
@@ -375,6 +386,7 @@ public class SpringApplication {
 		}
 		// Add boot specific singleton beans
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+		// 注册启动参数bean，这里将容器指定的参数封装成bean，注入容器。applicationArguments就是main方法参数args的封装
 		beanFactory.registerSingleton("springApplicationArguments", applicationArguments);
 		if (printedBanner != null) {
 			beanFactory.registerSingleton("springBootBanner", printedBanner);
@@ -387,9 +399,12 @@ public class SpringApplication {
 			context.addBeanFactoryPostProcessor(new LazyInitializationBeanFactoryPostProcessor());
 		}
 		// Load the sources
+		// 获取我们的启动类指定的参数，可以是多个
 		Set<Object> sources = getAllSources();
 		Assert.notEmpty(sources, "Sources must not be empty");
+		// 加载我们的启动类，将启动类对应的BeanDefinition注册到beanDefinitionMap中
 		load(context, sources.toArray(new Object[0]));
+		// 发布容器已加载事件
 		listeners.contextLoaded(context);
 	}
 

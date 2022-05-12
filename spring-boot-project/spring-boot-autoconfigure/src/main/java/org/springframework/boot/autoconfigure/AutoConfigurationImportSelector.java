@@ -69,6 +69,7 @@ import org.springframework.util.StringUtils;
  * @since 1.3.0
  * @see EnableAutoConfiguration
  */
+// 导入哪些组件的选择器，将所有需要导入的组件以全类名的方式返回，这些组件就会被添加到容器中
 public class AutoConfigurationImportSelector implements DeferredImportSelector, BeanClassLoaderAware,
 		ResourceLoaderAware, BeanFactoryAware, EnvironmentAware, Ordered {
 
