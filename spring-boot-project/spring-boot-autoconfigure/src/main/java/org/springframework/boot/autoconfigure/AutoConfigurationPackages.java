@@ -117,10 +117,13 @@ public abstract class AutoConfigurationPackages {
 	 * configuration.
 	 */
 	static class Registrar implements ImportBeanDefinitionRegistrar, DeterminableImports {
+		public Registrar() {
+			System.out.println("");
+		}
 
 		@Override
 		public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
-			// 默认将会扫描@SpringBootApplication标注的主配置类所在的包及其子包下所有组件
+			// 将@SpringBootApplication标注的主配置类所在包的包名加入到BasePackages类对应beanDefinition中
 			register(registry, new PackageImport(metadata).getPackageName());
 		}
 

@@ -172,6 +172,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		stopAndReleaseWebServer();
 	}
 
+	//这里是创建webServer，但是还没有启动tomcat，这里是通过ServletWebServerFactory创建
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
 		ServletContext servletContext = getServletContext();

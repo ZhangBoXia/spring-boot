@@ -275,6 +275,7 @@ public class SpringApplication {
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
 		// 设置监听器(Listener)
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+		// 获取main函数所在的类
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
 
@@ -309,11 +310,13 @@ public class SpringApplication {
 		listeners.starting();
 		try {
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+			// todo: 不知道干了什么
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+			// 值为“true”表示跳过对BeanInfo类的搜索 用处不大不看
 			configureIgnoreBeanInfo(environment);
 			// 准备Banner打印器 - 就是启动Spring Boot的时候打印在console上的ASCII艺术字体
 			Banner printedBanner = printBanner(environment);
-			// 实例化Spring容器（未初始化）
+			// 仅根据webApplicationType实例化Spring容器（未初始化）
 			context = createApplicationContext();
 			exceptionReporters = getSpringFactoriesInstances(SpringBootExceptionReporter.class,
 					new Class[] { ConfigurableApplicationContext.class }, context);
@@ -351,6 +354,7 @@ public class SpringApplication {
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
 		ConfigurationPropertySources.attach(environment);
+		// 启动相应的监听器，其中一个监听器ConfigFIleApplicationListener 就是加载了配置文件的监听器。
 		listeners.environmentPrepared(environment);
 		bindToSpringApplication(environment);
 		if (!this.isCustomEnvironment) {

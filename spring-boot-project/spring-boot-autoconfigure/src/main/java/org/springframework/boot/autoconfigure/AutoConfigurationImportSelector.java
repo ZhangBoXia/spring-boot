@@ -89,6 +89,10 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 
 	private ResourceLoader resourceLoader;
 
+	public AutoConfigurationImportSelector() {
+		System.out.println("");
+	}
+
 	@Override
 	public String[] selectImports(AnnotationMetadata annotationMetadata) {
 		if (!isEnabled(annotationMetadata)) {
@@ -110,15 +114,24 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 	 */
 	protected AutoConfigurationEntry getAutoConfigurationEntry(AutoConfigurationMetadata autoConfigurationMetadata,
 			AnnotationMetadata annotationMetadata) {
+		// 获取是否配置spring.boot.enableautoconfiguration属性，默认为TRUE
 		if (!isEnabled(annotationMetadata)) {
 			return EMPTY_ENTRY;
 		}
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+		// 得到spring.factories文件配置的所有自动配置类
+		// 即key为EnableAutoConfiguration.class
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+		// 利用LinkedHashSet去除重复配置类
 		configurations = removeDuplicates(configurations);
+		// 得到要排除的自动配置类
+		// 例如：@SpringBootApplication(exclude=xxx.class)
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+		// 检查要排除的自动配置类，如果类不是自动配置类的话抛出异常
 		checkExcludedClasses(configurations, exclusions);
+		// 移除需要排除的类
 		configurations.removeAll(exclusions);
+		// 过滤不必要的配置类，通过@Condition开头的注解进行过滤
 		configurations = filter(configurations, autoConfigurationMetadata);
 		fireAutoConfigurationImportEvents(configurations, exclusions);
 		return new AutoConfigurationEntry(configurations, exclusions);
@@ -393,10 +406,12 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 					() -> String.format("Only %s implementations are supported, got %s",
 							AutoConfigurationImportSelector.class.getSimpleName(),
 							deferredImportSelector.getClass().getName()));
+			// 调用getAutoConfigurationEntry 获取autoConfigurationEntry
 			AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector) deferredImportSelector)
 					.getAutoConfigurationEntry(getAutoConfigurationMetadata(), annotationMetadata);
 			this.autoConfigurationEntries.add(autoConfigurationEntry);
 			for (String importClassName : autoConfigurationEntry.getConfigurations()) {
+				// 这里符合条件的自动配置类作为key，annotationMetadata作为value放入entris
 				this.entries.putIfAbsent(importClassName, annotationMetadata);
 			}
 		}
